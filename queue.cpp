@@ -16,18 +16,25 @@ int main()
 {
 //создание файла в который будем писать
 int file = open("message.txt", O_CREAT | O_TRUNC | O_WRONLY, 0777);
-int message = open("temp.tmp", O_CREAT | O_TRUNC, 0777);
+int message = open("temp.tmp", O_CREAT | O_TRUNC, 0666);
 close(message);
 //создание очереди
 key_t queue_key = ftok("temp.tmp", 1);
-int msgq = msgget(queue_key, IPC_CREAT);
+std::cout << "Key " << queue_key << std::endl;
+int msgq = msgget(queue_key, IPC_CREAT | 0666);
+if(msgq == -1)
+{
+ std::cout << "ошибка создания очереди\n";
+	return -1;
+}
 //создания буфера
 struct message msg;
 bzero(&msg, sizeof(msg));
 //ожидания сообщения
 while(true)
 {
-msgrcv(msgq, &msg, sizeof(msg), 0, 0);
+int r = msgrcv(msgq, &msg, sizeof(msg), 0, 0);
+std::cout << r << " " << errno <<" " << EINVAL << std::endl;
 if(strlen(msg.buffer) > 0)
 {
 std::cout << msg.buffer << std::endl;
